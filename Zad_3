@@ -1,0 +1,299 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
+
+struct Ocjena
+{
+    public string IDPredmeta;
+    public int ocjena;
+
+    public Ocjena(string idPredmeta, int oocjena)
+    {
+        IDPredmeta = idPredmeta;
+        ocjena = oocjena;
+    }
+}
+
+struct Student
+{
+    public string Ime;
+    public string Prezime;
+    public int GodinaRodenja;
+    public string JMBAG;
+    public List<Ocjena> Ocjene;
+
+    public Student(string ime, string prezime, int godinaRodenja, string jmbag, List<Ocjena> ocjene)
+    {
+        Ime = ime;
+        Prezime = prezime;
+        GodinaRodenja = godinaRodenja;
+        JMBAG = jmbag;
+        Ocjene = ocjene;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        string putanja = "C:\\Users\\bogat\\source\\repos\\Priprema_Zadatak3\\Priprema_Zadatak3\\studenti_p1.json";
+
+        List<Student> studenti =
+            JsonConvert.DeserializeObject<List<Student>>(File.ReadAllText(putanja));
+
+        ProvjeriJMBAG(studenti);
+        IspisiNajboljiProsjek(studenti);
+        studenti = AzurirajOcjenu(studenti, putanja);
+    }
+
+    static void ProvjeriJMBAG(List<Student> studenti)
+    {
+        bool postoji = false;
+
+        for (int i = 0; i < studenti.Count; i++)
+        {
+            for (int j = i + 1; j < studenti.Count; j++)
+            {
+                if (studenti[i].JMBAG == studenti[j].JMBAG)
+                {
+                    if (!postoji)
+                    {
+                        Console.WriteLine("Postoje studenti s istim JMBAG-om:");
+                        postoji = true;
+                    }
+
+                    Console.WriteLine(studenti[i].Ime + " " + studenti[i].Prezime + " (" + studenti[i].JMBAG + ")");
+                    Console.WriteLine(studenti[j].Ime + " " + studenti[j].Prezime + " (" + studenti[j].JMBAG + ")");
+                }
+            }
+        }
+
+        if (!postoji)
+            Console.WriteLine("Nema studenata s istim JMBAG-om.");
+
+        Console.WriteLine();
+    }
+
+
+
+
+    static void IspisiNajboljiProsjek(List<Student> studenti)
+    {
+        double maxProsjek = -1;
+
+        for (int i = 0; i < studenti.Count; i++)
+        {
+            int suma = 0;
+            int broj = 0;
+
+            for (int j = 0; j < studenti[i].Ocjene.Count; j++)
+            {
+                if (studenti[i].Ocjene[j].ocjena > 0)
+                {
+                    suma += studenti[i].Ocjene[j].ocjena;
+                    broj++;
+                }
+            }
+
+            if (broj > 0)
+            {
+                double prosjek = (double)suma / broj;
+                if (prosjek > maxProsjek)
+                    maxProsjek = prosjek;
+            }
+        }
+
+        if (maxProsjek < 0)
+        {
+            Console.WriteLine("Niti jedan student još nije položio ispite.");
+            Console.WriteLine();
+            return;
+        }
+
+        Console.WriteLine("Studenti s najvećim prosjekom:");
+
+        for (int i = 0; i < studenti.Count; i++)
+        {
+            int suma = 0;
+            int broj = 0;
+
+            for (int j = 0; j < studenti[i].Ocjene.Count; j++)
+            {
+                if (studenti[i].Ocjene[j].ocjena > 0)
+                {
+                    suma += studenti[i].Ocjene[j].ocjena;
+                    broj++;
+                }
+            }
+
+            if (broj > 0 && (double)suma / broj == maxProsjek)
+            {
+                Console.WriteLine(studenti[i].Ime + " " + studenti[i].Prezime + " (" + studenti[i].JMBAG + ")");
+            }
+        }
+
+        Console.WriteLine();
+    }
+
+
+
+
+    static List<Student> AzurirajOcjenu(List<Student> studenti, string putanja)
+    {
+        Console.WriteLine("Odaberite studenta:");
+
+        for (int i = 0; i < studenti.Count; i++)
+        {
+            Console.WriteLine((i + 1) + ". " + studenti[i].Ime + " " + studenti[i].Prezime + " (" + studenti[i].JMBAG + ")");
+        }
+
+        int indexStudenta;
+        do
+        {
+            indexStudenta = Convert.ToInt32(Console.ReadLine());
+        } while (indexStudenta < 1 || indexStudenta > studenti.Count);
+
+        Student s = studenti[indexStudenta - 1];
+
+        Console.WriteLine("Predmeti:");
+
+        for (int i = 0; i < s.Ocjene.Count; i++)
+        {
+            Console.WriteLine((i + 1) + ". " +
+                              s.Ocjene[i].IDPredmeta + " – " +
+                              s.Ocjene[i].ocjena);
+        }
+
+        int indexPredmeta;
+        do
+        {
+            indexPredmeta = Convert.ToInt32(Console.ReadLine());
+        } while (indexPredmeta < 1 || indexPredmeta > s.Ocjene.Count);
+        Console.WriteLine("Unesite ocjenu koju želite zapisati: ");
+
+        int novaOcjena;
+        do
+        {
+            novaOcjena = Convert.ToInt32(Console.ReadLine());
+        } while (novaOcjena < 0 || novaOcjena > 5);
+
+        s.Ocjene[indexPredmeta - 1] =
+            new Ocjena(s.Ocjene[indexPredmeta - 1].IDPredmeta, novaOcjena);
+
+        studenti[indexStudenta - 1] = s;
+
+        File.WriteAllText(putanja,
+            JsonConvert.SerializeObject(studenti, Formatting.Indented));
+
+        Console.WriteLine("Ocjena je uspješno ažurirana.");
+        Console.WriteLine();
+
+        return studenti;
+    }
+}
+
+
+
+[
+  {
+    "Ime": "Ivan",
+    "Prezime": "Ivić",
+    "GodinaRodenja": 2000,
+    "JMBAG": "123456789",
+    "Ocjene": [
+      {
+        "IDPredmeta": "OP",
+        "ocjena": 5
+      },
+      {
+        "IDPredmeta": "Matematika",
+        "ocjena": 4
+      },
+      {
+        "IDPredmeta": "ASP",
+        "ocjena": 4
+      }
+    ]
+  },
+  {
+    "Ime": "Ana",
+    "Prezime": "Anić",
+    "GodinaRodenja": 1999,
+    "JMBAG": "12344567",
+    "Ocjene": [
+      {
+        "IDPredmeta": "OP",
+        "ocjena": 2
+      },
+      {
+        "IDPredmeta": "Matematika",
+        "ocjena": 1
+      },
+      {
+        "IDPredmeta": "ASP",
+        "ocjena": 3
+      }
+    ]
+  },
+  {
+    "Ime": "Luka",
+    "Prezime": "Lukić",
+    "GodinaRodenja": 2005,
+    "JMBAG": "12345677",
+    "Ocjene": [
+      {
+        "IDPredmeta": "OP",
+        "ocjena": 2
+      },
+      {
+        "IDPredmeta": "Matematika",
+        "ocjena": 5
+      },
+      {
+        "IDPredmeta": "ASP",
+        "ocjena": 2
+      }
+    ]
+  },
+  {
+    "Ime": "Marko",
+    "Prezime": "Markić",
+    "GodinaRodenja": 2003,
+    "JMBAG": "12345668",
+    "Ocjene": [
+      {
+        "IDPredmeta": "OP",
+        "ocjena": 5
+      },
+      {
+        "IDPredmeta": "Matematika",
+        "ocjena": 3
+      },
+      {
+        "IDPredmeta": "ASP",
+        "ocjena": 4
+      }
+    ]
+  },
+  {
+    "Ime": "Toni",
+    "Prezime": "Tonić",
+    "GodinaRodenja": 2001,
+    "JMBAG": "12345578",
+    "Ocjene": [
+      {
+        "IDPredmeta": "OP",
+        "ocjena": 3
+      },
+      {
+        "IDPredmeta": "Matematika",
+        "ocjena": 4
+      },
+      {
+        "IDPredmeta": "ASP",
+        "ocjena": 4
+      }
+    ]
+  }
+]
