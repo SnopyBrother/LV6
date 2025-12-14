@@ -1,1 +1,31 @@
-hhggh
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        string path = "C:\\Users\\bogat\\OneDrive\\Radna površina\\Faks\\OP-Ljetni Rok\\LV6_Zadatak1\\LV6_Zadatak1\\Zad1.txt";
+        using (StreamWriter sw = new StreamWriter(path))
+        {
+            for (int i = 8; i <= 142; i++)
+            {
+                if (i % 7 == 0 && !SveZnamenkeJednake(i))
+                {
+                    sw.WriteLine(i);
+                }
+            }
+        }
+        Console.WriteLine("Zapisano u Zad1.txt.");
+    }
+
+    static bool SveZnamenkeJednake(int broj)
+    {
+        string s = broj.ToString();
+        foreach (char c in s)
+        {
+            if (c != s[0]) return false;
+        }
+        return true;
+    }
+}
